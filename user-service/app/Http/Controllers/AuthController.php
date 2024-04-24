@@ -33,9 +33,11 @@ class AuthController extends Controller
                 'username' => $request->email,
             ])->first();
             if ($account && Hash::check($request->password, $account->password)) {
-                $user = $account->user;
 
-                $token = auth()->tokenById($user->id);
+                $user = $account->user;
+                $user->currentAvatar;
+
+                $token = auth()->claims(['user' => $user->toArray()])->login($user);
                 if ($token) {
                     $cookie = cookie('token', $token, auth()->factory()->getTTL());
                     return response()->json(reshelper()->withFormat($this->resProfile($user, $token)))->cookie($cookie);
@@ -111,14 +113,14 @@ class AuthController extends Controller
                     }
                     $user->accounts()->create([
                         'username' => $provider . '-' . $payload['email'],
-                        'password' => rand() . env('JWT_SECRET', '.') . rand(),
+                        'password' => rand() . env('PASSWORD_KEY', '.') . rand(),
                         'provider' => $provider,
                         'provider_id' => $providerId
                     ]);
                 }
             }
             $user = User::find($user->id);
-            $token = auth()->login($user);
+            $token = auth()->claims(['user' => $user->toArray()])->login($user);
             if (!$token) {
                 return response()->json(reshelper()->withFormat(null, 'Unauthorized', 'error', false, true));
             }
@@ -158,13 +160,14 @@ class AuthController extends Controller
                 }
                 $user->accounts()->create([
                     'username' => $provider . '-' . $request->input('email'),
-                    'password' => rand() . env('JWT_SECRET', '.') . rand(),
+                    'password' => rand() . env('PASSWORD_KEY', '.') . rand(),
                     'provider' => $provider,
                     'provider_id' => $providerId
                 ]);
             }
             $user = User::find($user->id);
-            $token = auth()->login($user);
+            $user->currentAvatar;
+            $token = auth()->claims(['user' => $user->toArray()])->login($user);
             if (!$token) {
                 return response()->json(reshelper()->withFormat(null, 'Unauthorized', 'error', false, true));
             }
@@ -181,20 +184,19 @@ class AuthController extends Controller
      */
     public function profile()
     {
-        $cookie = cookie('token', auth()->refresh(), auth()->factory()->getTTL());
+
         $user = auth()->user();
-        return response()->json(reshelper()->withFormat($this->resProfile($user)))->cookie($cookie);
+        $user->currentAvatar;
+        $token = auth()->claims(['user' => $user->toArray()])->login($user);
+        $cookie = cookie('token', $token, auth()->factory()->getTTL());
+        return response()->json(reshelper()->withFormat($this->resProfile($user, $token)))->cookie($cookie);
     }
 
     public function resProfile($user, $token = null)
     {
-        $followers_total = $user->followers()->count();
-        $following_total = $user->following()->count();
         return [
             'profile' => $user,
-            'access_token' => $token,
-            'followers_total' => $followers_total,
-            'following_total' => $following_total
+            'access_token' => $token
         ];
     }
 
