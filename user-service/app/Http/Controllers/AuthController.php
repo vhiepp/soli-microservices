@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\UserService;
 use App\Models\Account;
+use App\Models\User;
 use Hash;
+use App\Jobs\UserCreatedJob;
 
 class AuthController extends Controller
 {
@@ -133,7 +135,8 @@ class AuthController extends Controller
 
     public function signInWithOAuth(Request $request)
     {
-        try {
+        // try {
+            $createNewUser = false;
             $provider = $request->input('sign_in_provider');
             $providerId = $request->input('provider_id');
             $account = Account::whereProvider([
@@ -147,11 +150,12 @@ class AuthController extends Controller
                 $user = User::where('email', $request->input('email'))->first();
                 if ($user == null) {
                     $user = User::create([
-                        'full_name' => $request->input('full_name'),
+                        'fullname' => $request->input('fullname'),
                         'firstname' => $request->input('firstname'),
                         'lastname' => $request->input('lastname'),
                         'email' => $request->input('email')
                     ]);
+                    $createNewUser = true;
                     try {
                         if (str($request->input('avatar_url'))->isUrl()) {
                             $this->userService->changeAvatar($user, $request->input('avatar_url'));
@@ -167,15 +171,18 @@ class AuthController extends Controller
             }
             $user = User::find($user->id);
             $user->currentAvatar;
+            if ($createNewUser) {
+                UserCreatedJob::dispatch($user->toArray());
+            }
             $token = auth()->claims(['user' => $user->toArray()])->login($user);
             if (!$token) {
                 return response()->json(reshelper()->withFormat(null, 'Unauthorized', 'error', false, true));
             }
             $cookie = cookie('token', $token, auth()->factory()->getTTL());
             return response()->json(reshelper()->withFormat($this->resProfile($user, $token), 'Successfully sign in'))->cookie($cookie);
-        } catch (\Exception $exception) {}
+        // } catch (\Exception $exception) {}
 
-        return response()->json(reshelper()->withFormat(null, 'It could be due to expired firebase_access_token or input parameter error', 'error', false, true));
+        // return response()->json(reshelper()->withFormat(null, 'It could be due to expired firebase_access_token or input parameter error', 'error', false, true));
     }
     /**
      * Get the authenticated User.
