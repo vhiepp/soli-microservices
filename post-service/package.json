@@ -1,7 +1,16 @@
 {
+  "main": "index.js",
+  "scripts": {
+    "start": " node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^8.3.2"
+    "mongoose": "^8.3.2",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
