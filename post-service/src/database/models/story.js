@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const { randomUUID } = require("crypto");
 
-const postSchema = new mongoose.Schema({
+const mediaSchema = new mongoose.Schema({
   _id: {
     type: String,
     default: randomUUID,
   },
-  caption: {
+  content: {
     type: String,
     required: false,
   },
@@ -14,6 +14,11 @@ const postSchema = new mongoose.Schema({
     type: String,
     enum: ["showing", "await", "deleted", "hidden"],
     default: "await",
+  },
+  fileUrl: {
+    type: String,
+    required: true,
+    length: 255,
   },
   author: {
     type: String,
@@ -29,4 +34,4 @@ const postSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("post", postSchema);
+module.exports = mongoose.model("story", mediaSchema);
