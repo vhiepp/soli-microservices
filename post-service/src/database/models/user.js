@@ -3,7 +3,7 @@ const { randomUUID } = require("crypto");
 
 const Schema = mongoose.Schema;
 
-const UserSchema = new Schema({
+const userSchema = new Schema({
   _id: {
     type: String,
     default: randomUUID,
@@ -11,20 +11,29 @@ const UserSchema = new Schema({
   fullname: {
     type: String,
     required: true,
+    length: 100,
   },
-  // firstname: {
-  //   type: String,
-  //   required: true,
-  // },
-  // lastname: {
-  //   type: String,
-  //   required: true,
-  // },
-  // uid: {
-  //   type: String,
-  //   required: true,
-  //   unique: true,
-  // },
+  firstname: {
+    type: String,
+    required: true,
+    length: 50,
+  },
+  lastname: {
+    type: String,
+    required: true,
+    length: 50,
+  },
+  uid: {
+    type: String,
+    required: true,
+    unique: true,
+    length: 100,
+  },
+  avatarUrl: {
+    type: String,
+    default: "",
+    length: 255,
+  },
   createdAt: {
     type: Number,
     default: () => Math.floor(Date.now() / 1000),
@@ -35,4 +44,4 @@ const UserSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("user", UserSchema);
+module.exports = mongoose.model("user", userSchema);

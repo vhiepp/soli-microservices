@@ -1,23 +1,24 @@
 const mongoose = require("mongoose");
 const { randomUUID } = require("crypto");
 
-const postSchema = new mongoose.Schema({
+const mediaSchema = new mongoose.Schema({
   _id: {
     type: String,
     default: randomUUID,
   },
-  caption: {
+  fileUrl: {
     type: String,
-    required: false,
+    required: true,
+    length: 255,
   },
-  status: {
+  type: {
     type: String,
-    enum: ["showing", "await", "deleted", "hidden"],
-    default: "await",
+    enum: ["image", "video"],
+    required: true,
   },
-  author: {
+  postId: {
     type: String,
-    ref: "user",
+    ref: "post",
   },
   createdAt: {
     type: Number,
@@ -29,4 +30,4 @@ const postSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("post", postSchema);
+module.exports = mongoose.model("media", mediaSchema);
